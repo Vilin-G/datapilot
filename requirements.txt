@@ -1,0 +1,12 @@
+# 第一站（数据层）已装
+pandas
+openpyxl
+python-dotenv
+
+# 第二站起按需追加（到那站再装，避免环境早早变乱）
+# langchain
+# langchain-openai
+# langchain-core
+# langgraph
+# fastapi
+# uvicorn

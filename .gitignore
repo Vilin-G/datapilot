@@ -1,0 +1,27 @@
+# Python 虚拟环境
+.venv/
+__pycache__/
+*.pyc
+
+# IDE
+.idea/
+.vscode/
+
+# 密钥：绝不进仓库
+.env
+
+# 数据库文件（可由脚本重新生成）
+*.db
+*.sqlite
+*.sqlite3
+
+# 原始数据：体积大，不进仓库（下载地址写在 README）
+data/raw/*.zip
+data/raw/*.xlsx
+
+# 中间产物：可由脚本重新生成
+data/processed/*.csv
+data/processed/*.parquet
+
+# 评测输出
+eval_results/
