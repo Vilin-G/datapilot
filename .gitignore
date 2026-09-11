@@ -25,3 +25,4 @@ data/processed/*.parquet
 
 # 评测输出
 eval_results/
+data/raw/*.csv
