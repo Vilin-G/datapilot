@@ -30,8 +30,41 @@ def get_schema(con):
     return "\n\n".join(message)
 
 
+def run_sql(con, sql):
+    max_rows = 100
+    cursor = con.cursor()
+    try:
+        if type(sql) is not str:
+            return {"ok": False, "error": "Input must be a string.输入必须是字符串。"}
+
+        if not sql.strip().upper().startswith("SELECT"):
+            return {"ok": False, "error": "Not a SELECT statement, 系统拒绝了此命令。"}
+
+        if "LIMIT" not in sql.strip().upper():
+            sql = sql.strip() + f" LIMIT {max_rows};"
+
+        first_back = cursor.execute(sql).fetchall()
+        total = len(first_back)
+        second_back = first_back[:max_rows]
+        return {"ok": True,
+                "rows": second_back,
+                "truncated": total > max_rows,
+                "total": total}
+
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+
 if __name__ == "__main__":
     con = sqlite3.connect(processed_dir/"datapilot.db")
     result = get_schema(con)
+    run = run_sql(con, "SELECT Country FROM orders LIMIT 3")
+    run2 = run_sql(con, "CREATE TABLE tmp_test (a TEXT)")
+    run3 = run_sql(con, "SELECT * FROM orders; DROP TABLE orders")
+    run4 = run_sql(con, "SELECT * FROM orders LIMIT 1000")
+    run5 = run_sql(con, "SELECT DISTINCT Country FROM orders")
+    print(run, "\n", run2, "\n", run3)
+    print(len(run4["rows"]), run4["truncated"], run4["total"])
+    print(len(run5["rows"]), run5["truncated"], run5["total"])
     print(result)
     con.close()
