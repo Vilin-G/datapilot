@@ -3,7 +3,7 @@ import sys, importlib
 from openai import OpenAI
 import os
 
-
+MAX_STEPS = 5
 sys.path.insert(0, "scripts")
 t = importlib.import_module("07_tools")
 
@@ -46,41 +46,76 @@ tools = [
     ]
 
 
-messages = [{"role": "user", "content": "列出数据库里的表"}]
-response = client.chat.completions.create(
-    model="deepseek-chat",
-    messages=messages,
-    tools=tools,
-    tool_choice="auto",
-)
-messages.append(response.choices[0].message)
+while True:
+    question = input("请输入您想查询的内容: ")
 
-tc = response.choices[0].message.tool_calls[0]
+    if "exit" in question:
+        break
 
-name = tc.function.name
-args = json.loads(tc.function.arguments)
+    messages = [{"role": "user", "content": question}]
 
-if name == "describe_database":
-    result = t.describe_database.invoke(args)
-elif name == "query_database":
-    result = t.query_database.invoke(args)
+    for step in range(MAX_STEPS):
 
-messages.append(
-    {
-        "role": "tool",
-        "tool_call_id": tc.id,
-        "content": result,
-    }
-)
-response = client.chat.completions.create(
-    model="deepseek-chat",
-    messages=messages,
-    tools=tools,
-    tool_choice="auto",
-)
+        response = client.chat.completions.create(
+            model="deepseek-chat",
+            messages=messages,
+            tools=tools,
+            tool_choice="auto",
+        )
+        messages.append(response.choices[0].message)
+
+        if response.choices[0].finish_reason == "stop":
+            print(response.choices[0].message.content)
+            break
+
+        for tc in response.choices[0].message.tool_calls:
+            name = tc.function.name
+            args = json.loads(tc.function.arguments)
+            if name == "describe_database":
+                result = t.describe_database.invoke(args)
+            elif name == "query_database":
+                result = t.query_database.invoke(args)
+
+            messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": tc.id,
+                    "content": result,
+                }
+            )
+
+    else:
+        print("到达最大步数限制")
 
 
-print(response.choices[0].message)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
