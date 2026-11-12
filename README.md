@@ -35,50 +35,6 @@
 
 ---
 
-## 拖一张自己的表进来
-
-前面的架构图里，数据库是硬编码的 `data/processed/datapilot.db`。但真实场景里没人会把数据整理成你想要的库——**手上只有一份 Excel**。
-
-`scripts/12_chat_file.py` 解决这个：任意 `.xlsx` / `.csv` / `.parquet` / `.db`，装载后立刻能问。
-
-```bash
-# 拖到根目录的 ask_with_file.bat 上，或者直接传路径
-.venv\Scripts\python.exe scripts\12_chat_file.py "D:\某目录\销售表.xlsx"
-```
-
-Excel 的每个 sheet 变成一张表，列名原样保留（**中文列名、带空格的列名都能直接查**）。实测：
-
-```
-已装载：
-表：明细（2 行）
-字段：
- 地区            TEXT
- 销售额          INTEGER
-...
-请输入您想查询的内容: 华东的销售额是 **100**。
-```
-
-**能这么做，是因为二站没把表名写死。** `get_schema()` 遍历 `sqlite_master` 拿到所有表，`describe_database` 把整个库的结构交给模型——模型不是"知道 orders 表"，是**先看再决定**。换库只需要换一个连接对象：
-
-```python
-tools.con = load_any(args[0])      # 换掉 07_tools 的模块级 con，两个工具就都指向新库
-agent = importlib.import_module("08_agent")
-```
-
-三个必须处理的现实问题（都在 `12_chat_file.py` 里）：
-
-| 问题 | 处理 |
-| --- | --- |
-| Excel 表头有空的 `Unnamed: N` 列、重名列 | 丢弃空列；重名加 `_2` 后缀 |
-| 国内 Excel 导出的 CSV 是 GBK | `UnicodeDecodeError` 时退回 `encoding="gbk"` |
-| 老的 `.xls` 要额外装 `xlrd` | 不为它加依赖，直接提示「另存为 .xlsx」 |
-
-**实测规模**：50 万行 / 15.7MB 的 CSV，装载 0.57 秒，聚合查询 0.16 秒。整表进内存（`sqlite3.connect(":memory:")`），几十万行没问题，再大要改分块。
-
-**这张表没有业务口径提示。** 换成自己的 Excel 后，模型不会知道你的"退款"是不是负数、你的"订单号"会不会重复——它只会照列名猜。库换掉了，口径这一层知识也跟着没了。
-
----
-
 ## 核心设计：报错回传不是"写出来的"
 
 工具层做了一件事：**查询失败时，把 SQLite 的原始报错文本原样返回，不包装成"查询失败，请重试"。**
@@ -197,8 +153,6 @@ scripts/
   09_run_eval_sqls.py    评测题 SQL 批量试跑（一次性筛选工具）
   10_verify_eval_set.py  10 道题标准答案对账，assert 全过才算
   11_eval_agent.py       评测脚本：跑 10 道题，输出完成率
-  12_chat_file.py        任意 xlsx / csv / db 装载后直接问答
-ask_with_file.bat       把文件拖上去就能问（Windows）
 docs/
   项目地图.md            四层结构、为什么是这个顺序
   评测集.md              10 道题 + 标准答案 + 五轮实跑结果
@@ -229,10 +183,6 @@ python scripts/08_agent.py
 
 # 4. 跑评测（会调 10 道题的 API，1~5 分钟）
 python scripts/11_eval_agent.py
-
-# 5. 换成自己的表：Excel / CSV / 已存在的 .db 都行
-python scripts/12_chat_file.py "D:\某目录\销售表.xlsx"
-python scripts/12_chat_file.py --check        # 只跑自检，不调模型
 ```
 
 `.env.example` 只是配置留档，**代码不读 `.env`**——`08_agent.py` 第 11 行直接 `os.getenv("DEEPSEEK_API_KEY")`，所以必须真的设成环境变量。
