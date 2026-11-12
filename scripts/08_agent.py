@@ -3,7 +3,7 @@ import sys, importlib
 from openai import OpenAI
 import os
 
-MAX_STEPS = 5
+MAX_STEPS = 8
 sys.path.insert(0, "scripts")
 t = importlib.import_module("07_tools")
 
@@ -46,16 +46,9 @@ tools = [
     ]
 
 
-while True:
-    question = input("请输入您想查询的内容: ")
-
-    if "exit" in question:
-        break
-
+def ask(question: str) -> str:
     messages = [{"role": "user", "content": question}]
-
     for step in range(MAX_STEPS):
-
         response = client.chat.completions.create(
             model="deepseek-chat",
             messages=messages,
@@ -63,10 +56,9 @@ while True:
             tool_choice="auto",
         )
         messages.append(response.choices[0].message)
-
         if response.choices[0].finish_reason == "stop":
-            print(response.choices[0].message.content)
-            break
+            return response.choices[0].message.content
+
 
         for tc in response.choices[0].message.tool_calls:
             name = tc.function.name
@@ -83,9 +75,17 @@ while True:
                     "content": result,
                 }
             )
-
     else:
-        print("到达最大步数限制")
+        return "sys:到达最大步数限制"
+
+
+if __name__ == "__main__":
+    while True:
+        question = input("请输入您想查询的内容: ")
+
+        if "exit" in question:
+            break
+        ask(question)
 
 
 
