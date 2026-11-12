@@ -1,12 +1,14 @@
-# 第一站（数据层）已装
+# 数据层（第一站）
 pandas
 openpyxl
 python-dotenv
 
-# 第二站起按需追加（到那站再装，避免环境早早变乱）
-# langchain
-# langchain-openai
-# langchain-core
-# langgraph
-# fastapi
-# uvicorn
+# 工具层 + Agent（第二站）
+langchain-core
+openai
+
+# 已装但主线未用到（预留：框架版重构 / MCP 分支 / 未来服务层）
+langchain-openai
+langgraph
+mcp
+uvicorn
