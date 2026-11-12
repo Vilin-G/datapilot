@@ -110,9 +110,9 @@ messages.append({"role": "tool", "tool_call_id": tc.id, "content": result})
 
 ## 一条取舍：为什么不用 LangChain Agent
 
-`bind_tools()` + `create_react_agent()` 能把 `08_agent.py` 里 40 行循环压成 5 行。**没这么做，是刻意的。**
+`bind_tools()` + `create_react_agent()` 能把 `08_agent.py` 第 49–79 行那三十行循环压成五行。**没这么做，是刻意的。**
 
-这个项目的重点是"模型怎么决定下一步"，那 40 行就是这个决定的全部现场：
+这个项目的重点是"模型怎么决定下一步"，那三十行就是这个决定的全部现场：
 
 ```python
 for step in range(MAX_STEPS):                       # 预算
