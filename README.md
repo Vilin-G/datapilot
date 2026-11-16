@@ -9,6 +9,22 @@
 
 ---
 
+## 界面
+
+一个本地演示服务 + 单页前端，把 `scripts/08_agent.py` 的 `ask()` 接到浏览器上。只新增两个文件（`serve_demo.py`、`static/index.html`），**没有改动任何既有代码，也没有引入新依赖**。
+
+![回答界面](docs/images/ui-answer.png)
+
+失败也是界面的一部分——跑到步数上限、超时、SQL 报错都会如实显示出来，不吞掉：
+
+![步数上限](docs/images/ui-steplimit.png)
+
+```bash
+.venv\Scripts\python.exe serve_demo.py     # 然后打开 http://127.0.0.1:8000
+```
+
+> 界面上那段"当前阶段（如实说明）"是刻意留的：`ask()` 只返回最终文字答案，模型中途调了哪个工具、写了什么 SQL 并没有接口暴露，所以前端不假装有轨迹；服务也是单线程的（`07_tools.py` 的 sqlite 连接建在主线程，跨线程会 `ProgrammingError`），一次只能问一个问题。
+
 ## 这是怎么跑起来的
 
 ```
